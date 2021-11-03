@@ -123,5 +123,137 @@ scale down replica set **<span style='color:red'>75c585fb66</span>** to 1\
 
 <br>
 
+
+## 83. Updating a Deployment
+
+
+<br>
+
+![rollout_revision_0](rollout_revision_0.jpg)
+
+▲ 使用 `--revision=` 可以查看指定 revision
+
+<br>
+
+![rollout_record_0](rollout_record_0.jpg)
+
+▲ 在 create/edit `deployment` 的時候使用 `--record`，可以把當次使用的命令紀錄到 `CAUSE` 欄位。
+
+<br>
+
+---
+
+## 86. Jobs
+
+
+`Jobs` 就像 Linux 的 `at` 一樣，**負責執行一次性工作** (參考資料: [小信豬 [Kubernetes] Job, CronJob & TTL Controller Overview](https://godleon.github.io/blog/Kubernetes/k8s-Job-Overview/))
+
+
+我們直接 hands-on ~ 建立一個 `pod` 使用 `perl` 計算圓周率小數點後一位 (???)
+
+<br>
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: pi-pod
+  name: pi-pod
+spec:
+  containers:
+  - image: perl
+    name: pi-pod
+    command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2)"]
+```
+
+<br>
+
+接著用 `kubectl get pod pi-pod` 觀察 `pod` 的變化
+
+<br>
+
+![pi_pod_0](pi_pod_0.jpg)
+
+▲ 狀態從 ContainerCreating -> Complete -> CrashLoopBackOff (Restart:1)，好像哪裡怪怪的... 都 Complete 了怎麼會有 `restart` 呢?
+
+<br>
+
+其實這跟 Kubernetes 預設的 `restartPolicy` 有關。當 K8s 偵測到 `pod` 裡面的 container failed/exited 就會很熱心地去 `restart` 人家~
+
+
+<br>
+
+![pi_pod_1](pi_pod_1.jpg)
+
+▲ 同場加映，昨天我用 `--image=hello-world` 建立的 `pod` 已經 `restart` 356 次了 XD 因為 hello-world 這個 image 只做一件事情: 顯示 Hello World 後 Exited (0)\
+然後就被 Kubernetes 一直 `restart` 惹 QQ
+
+<br>
+
+**<span style='color:red'>上面的例子讓我們知道一件事: Pod 不適合跑一次性的工作</span>**\
+可是你可能會想說: 那把 `restartPolicy: Never` 就好了呀~ No no no! `Job` 能夠幫我們做更多事 :)
+
+
+我們在來把剛剛的 `pod` 改成 `job`:
+
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi-job
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - image: perl
+        name: pi-job
+        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2)"]
+      restartPolicy: Never
+```
+
+<br>
+
+![pi_job_0](pi_job_0.jpg)
+
+▲ 當 job 執行完成後 `STATUS` 會變成 `Complete` 不會被 K8s 一直雞婆 `restart`。
+
+<br>
+
+`job` 同時可以執行多次、同時執行 (parallelism)
+
+
+<br>
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi-job
+spec:
+  completions: 50
+  parallelism: 2
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - image: perl
+        name: pi-job
+        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2)"]
+      restartPolicy: Never
+```
+
+<br>
+
+![pi_job_1](pi_job_1.jpg)
+
+▲ 目標完成: 50，同時執行: 3
+
+<br>
+
 ---
 
