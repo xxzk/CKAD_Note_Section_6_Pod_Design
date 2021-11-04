@@ -255,5 +255,45 @@ spec:
 
 <br>
 
+### backoffLimit
+
+
+`Job` 在 `.spec.backoffLimit` **<span style='color:red'>預設值是 `6`</span>**，這個設定值定義當 `pod` failed 幾次之後就終止此 `Job`。
+
+
 ---
+
+## 87. CronJob
+
+
+就跟 Linux 的 cronjob 一樣，定時執行。比較特別的是 `CronJob` 有三個 `spec`:
+1. `CronJob` 的
+2. `Job` 的
+3. `Pod` 的
+
+<br>
+
+```yml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+          restartPolicy: OnFailure
+```
+
+<br>
 
