@@ -146,6 +146,19 @@ scale down replica set **<span style='color:red'>75c585fb66</span>** to 1\
 ## 86. Jobs
 
 
+<br>
+
+**<span style='color:red'>Tips:</span>**
+
+
+```bash
+## kubectl create job NAME --image=image [--from=cronjob/name] -- [COMMAND] [args...] [options]
+kubectl create job fast-job --image=centos:7 $dry -- sh -c "echo Hi" > fast-job.yml
+```
+
+<br>
+
+
 `Jobs` 就像 Linux 的 `at` 一樣，**負責執行一次性工作** (參考資料: [小信豬 [Kubernetes] Job, CronJob & TTL Controller Overview](https://godleon.github.io/blog/Kubernetes/k8s-Job-Overview/))
 
 
