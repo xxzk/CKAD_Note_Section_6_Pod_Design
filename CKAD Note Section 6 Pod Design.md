@@ -154,6 +154,10 @@ scale down replica set **<span style='color:red'>75c585fb66</span>** to 1\
 ```bash
 ## kubectl create job NAME --image=image [--from=cronjob/name] -- [COMMAND] [args...] [options]
 kubectl create job fast-job --image=centos:7 $dry -- sh -c "echo Hi" > fast-job.yml
+
+# Pod way
+## kubectl run nginx --image=nginx --command -- <cmd> <arg1> ... <argN>
+kubectl run pod6 --image=busybox:1.31.0 $dry --command -- sh -c "touch /tmp/ready && sleep 1d" > 6.yaml
 ```
 
 <br>
